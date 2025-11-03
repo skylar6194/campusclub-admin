@@ -1,46 +1,82 @@
-import React, { useState, useMemo } from "react";
+// CampusClub Admin - Clickable High-Fidelity Prototype
+// ------------------------------------------------------------------
+// This single-file React component is a clickable prototype of "CampusClub Admin".
+// Built with Tailwind CSS classes (assumes Tailwind is available in preview environment).
+// Default export is the previewable component.
+//
+// Top documentation (user journey, monetisation, retention & metric) lives here:
+// USER JOURNEY (one-paragraph):
+// 1) Organizer signs in and lands on Dashboard showing upcoming events and quick tasks.
+// 2) Organizer creates an event with tasks, roles & volunteer slots (or imports a template).
+// 3) Volunteers sign up (via public link) and organizer assigns them to tasks on a live map or list.
+// 4) During the event, organizer uses Live View to see volunteer check-ins, task progress and to reassign on the fly.
+// 5) Post-event, the app generates attendance, volunteer contribution badges and an event summary to publish and retain volunteers.
+//
+// NEW FEATURES ADDED (per request):
+// - Participant feedback collection (post-event feedback form + summary in Analytics).
+// - Event duration (hours) tracked at creation and shown in analytics; supports computing Organizer Efficiency Score.
+// - Approvals flow: organizers can "Raise for approval"; approvers see pending approvals and can Approve/Reject (mock).
+//
+// ORGANIZER EFFICIENCY SCORE (single metric):
+// - Computed as a composite: (Average events planned on-platform * average event hours) / (baseline off-platform events * baseline hours)
+//   then adjusted by participant satisfaction (avg feedback rating) and volunteer retention.
+// - For prototype purposes we compute a simplified score: score = clamp( (eventsOnPlatform * avgHours * (avgRating/5) * (1 + retentionRate)) * 10, 0, 100 )
+// - This metric is surfaced on the Dashboard as "Organizer Efficiency Score" and updates when events, hours or feedback are added.
+//
+// MONETISATION & RETENTION (short):
+// - Freemium student tier (free for club officers, basic analytics, up to 3 events/month).
+// - Campus/University license with SSO + integrations, organization analytics & CSV exports.
+// - Retention hooks: volunteer reputation/badges, reusable event templates, calendar & reminders, automated post-event thank-yous & recognitions.
+//
+// PRIMARY METRIC:
+// - Organizer Efficiency Score (see formula above) and submetrics: avg participant satisfaction, volunteer retention.
+//
+// ------------------------------------------------------------------
 
-export default function App() {
-  const [screen, setScreen] = useState("dashboard");
-  const [query, setQuery] = useState("");
+import React, { useState, useMemo } from 'react';
 
+export default function CampusClubAdminPrototype() {
+  const [screen, setScreen] = useState('dashboard');
+  const [query, setQuery] = useState('');
+
+  // sample events - now include hours, approvalStatus, feedback array
   const [events, setEvents] = useState([
     {
-      id: "evt-1",
-      title: "Freshers Welcome Stall",
-      date: "2025-11-20",
-      venue: "Central Lawn",
+      id: 'evt-1',
+      title: 'Freshers Welcome Stall',
+      date: '2025-11-20',
+      venue: 'Central Lawn',
       hours: 4,
-      approvalStatus: "approved",
+      approvalStatus: 'approved', // pending | approved | rejected
       volunteers: [
-        { id: "v1", name: "Aisha", role: "Check-in", status: "assigned", location: { x: 40, y: 30 }, score: 2 },
-        { id: "v2", name: "Rohit", role: "Food Stall", status: "signed-up", location: { x: 60, y: 50 }, score: 1 }
+        { id: 'v1', name: 'Aisha', role: 'Check-in', status: 'assigned', location: { x: 40, y: 30 }, score: 2 },
+        { id: 'v2', name: 'Rohit', role: 'Food Stall', status: 'signed-up', location: { x: 60, y: 50 }, score: 1 },
       ],
       tasks: [
-        { id: "t1", title: "Setup Stall 8:30", assignedTo: "v1", status: "todo" },
-        { id: "t2", title: "Manage Food 9:00", assignedTo: "v2", status: "todo" }
+        { id: 't1', title: 'Setup Stall 8:30', assignedTo: 'v1', status: 'todo' },
+        { id: 't2', title: 'Manage Food 9:00', assignedTo: 'v2', status: 'todo' },
       ],
-      feedback: [{ id: "f1", name: "Priya", rating: 4, comment: "Well organised" }]
+      feedback: [ { id: 'f1', name: 'Priya', rating: 4, comment: 'Well organised' } ],
     },
     {
-      id: "evt-2",
-      title: "Tech Talk: AI for Good",
-      date: "2025-12-05",
-      venue: "Auditorium A",
+      id: 'evt-2',
+      title: 'Tech Talk: AI for Good',
+      date: '2025-12-05',
+      venue: 'Auditorium A',
       hours: 2,
-      approvalStatus: "pending",
+      approvalStatus: 'pending',
       volunteers: [],
       tasks: [],
-      feedback: []
-    }
+      feedback: [],
+    },
   ]);
 
   const [selectedEventId, setSelectedEventId] = useState(events[0].id);
-  const selectedEvent = useMemo(() => events.find((e) => e.id === selectedEventId), [events, selectedEventId]);
+  const selectedEvent = useMemo(() => events.find(e => e.id === selectedEventId), [events, selectedEventId]);
 
   function openEvent(id) {
     setSelectedEventId(id);
-    setScreen("event");
+    setScreen('event');
   }
 
   function createEvent(payload) {
@@ -50,73 +86,67 @@ export default function App() {
       date: payload.date,
       venue: payload.venue,
       hours: payload.hours || 2,
-      approvalStatus: "pending",
+      approvalStatus: 'pending',
       volunteers: [],
       tasks: [],
-      feedback: []
+      feedback: [],
     };
     setEvents([newEvent, ...events]);
     setSelectedEventId(newEvent.id);
-    setScreen("event");
+    setScreen('event');
   }
 
   function addVolunteer(vol) {
-    setEvents(events.map((ev) => (ev.id === selectedEventId ? { ...ev, volunteers: [...ev.volunteers, vol] } : ev)));
+    setEvents(events.map(ev => ev.id === selectedEventId ? { ...ev, volunteers: [...ev.volunteers, vol] } : ev));
   }
 
   function assignTask(task) {
-    setEvents(events.map((ev) => (ev.id === selectedEventId ? { ...ev, tasks: [...ev.tasks, task] } : ev)));
+    setEvents(events.map(ev => ev.id === selectedEventId ? { ...ev, tasks: [...ev.tasks, task] } : ev));
   }
 
   function toggleCheckIn(volId) {
-    setEvents(
-      events.map((ev) => {
-        if (ev.id !== selectedEventId) return ev;
-        const volunteers = ev.volunteers.map((v) => (v.id === volId ? { ...v, status: v.status === "checked-in" ? "assigned" : "checked-in" } : v));
-        return { ...ev, volunteers };
-      })
-    );
+    setEvents(events.map(ev => {
+      if (ev.id !== selectedEventId) return ev;
+      const volunteers = ev.volunteers.map(v => v.id === volId ? { ...v, status: v.status === 'checked-in' ? 'assigned' : 'checked-in' } : v);
+      return { ...ev, volunteers };
+    }));
   }
 
   function raiseApproval(eventId) {
-    setEvents(events.map((ev) => (ev.id === eventId ? { ...ev, approvalStatus: "pending" } : ev)));
+    setEvents(events.map(ev => ev.id === eventId ? { ...ev, approvalStatus: 'pending' } : ev));
   }
 
   function approveEvent(eventId) {
-    setEvents(events.map((ev) => (ev.id === eventId ? { ...ev, approvalStatus: "approved" } : ev)));
+    setEvents(events.map(ev => ev.id === eventId ? { ...ev, approvalStatus: 'approved' } : ev));
   }
 
   function rejectEvent(eventId) {
-    setEvents(events.map((ev) => (ev.id === eventId ? { ...ev, approvalStatus: "rejected" } : ev)));
+    setEvents(events.map(ev => ev.id === eventId ? { ...ev, approvalStatus: 'rejected' } : ev));
   }
 
   function submitFeedback(eventId, feedback) {
-    setEvents(events.map((ev) => (ev.id === eventId ? { ...ev, feedback: [...ev.feedback, feedback] } : ev)));
+    setEvents(events.map(ev => ev.id === eventId ? { ...ev, feedback: [...ev.feedback, feedback] } : ev));
   }
 
+  // small analytics derived
   const totalVolunteers = selectedEvent ? selectedEvent.volunteers.length : 0;
-  const checkedIn = selectedEvent ? selectedEvent.volunteers.filter((v) => v.status === "checked-in").length : 0;
+  const checkedIn = selectedEvent ? selectedEvent.volunteers.filter(v => v.status === 'checked-in').length : 0;
 
+  // computed metrics for Organizer Efficiency Score
   const eventsOnPlatform = events.length;
-  const avgHours = events.length ? events.reduce((s, e) => s + (e.hours || 0), 0) / events.length : 0;
-  const avgRating =
-    events.length
-      ? events.reduce((s, e) => s + (e.feedback.reduce((ss, f) => ss + f.rating, 0) || 0), 0) /
-        (events.reduce((ss, e) => ss + Math.max(1, e.feedback.length), 0))
-      : 0;
-  const retentionRate =
-    0.2 +
-    (events.reduce((s, e) => s + (e.volunteers.filter((v) => v.status === "checked-in").length || 0), 0) /
-      Math.max(1, events.reduce((s, e) => s + e.volunteers.length, 0))) || 0;
+  const avgHours = events.length ? (events.reduce((s,e)=>s + (e.hours||0),0) / events.length) : 0;
+  const avgRating = events.length ? (events.reduce((s,e)=> s + (e.feedback.reduce((ss,f)=> ss + f.rating,0) || 0),0) / (events.reduce((ss,e)=> ss + Math.max(1,e.feedback.length),0))) : 0; // avoid div by zero
+  const retentionRate = 0.2 + (events.reduce((s,e)=> s + (e.volunteers.filter(v=>v.status==='checked-in').length || 0),0) / Math.max(1, events.reduce((s,e)=> s + e.volunteers.length,0))) || 0;
 
-  function computeEfficiencyScore() {
-    const score = Math.max(0, Math.min(100, Math.round((eventsOnPlatform * Math.max(1, avgHours) * ((avgRating || 3) / 5) * (1 + retentionRate)) * 3)));
+  function computeEfficiencyScore(){
+    const score = Math.max(0, Math.min(100, Math.round((eventsOnPlatform * Math.max(1, avgHours) * ( (avgRating||3)/5 ) * (1 + retentionRate)) * 3 )));
     return score;
   }
 
   const efficiencyScore = computeEfficiencyScore();
 
-  const pendingApprovals = events.filter((e) => e.approvalStatus === "pending");
+  // approvals list
+  const pendingApprovals = events.filter(e => e.approvalStatus === 'pending');
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 p-6 font-sans">
@@ -127,51 +157,31 @@ export default function App() {
             <p className="text-sm text-gray-600">Organize events, manage volunteers, ship smoother campus experiences</p>
           </div>
           <nav className="flex gap-3 items-center">
-            <button onClick={() => setScreen("dashboard")} className={`px-3 py-1 rounded ${screen === "dashboard" ? "bg-indigo-600 text-white" : "bg-white border"}`}>
-              Dashboard
-            </button>
-            <button onClick={() => setScreen("create")} className={`px-3 py-1 rounded ${screen === "create" ? "bg-indigo-600 text-white" : "bg-white border"}`}>
-              Create Event
-            </button>
-            <button onClick={() => setScreen("templates")} className={`px-3 py-1 rounded ${screen === "templates" ? "bg-indigo-600 text-white" : "bg-white border"}`}>
-              Templates
-            </button>
-            <div className="ml-4 bg-white p-2 rounded shadow-sm text-sm">
-              Signed in as <strong>you@college.edu</strong>
-            </div>
+            <button onClick={() => setScreen('dashboard')} className={`px-3 py-1 rounded ${screen==='dashboard'? 'bg-indigo-600 text-white':'bg-white border'}`}>Dashboard</button>
+            <button onClick={() => setScreen('create')} className={`px-3 py-1 rounded ${screen==='create'? 'bg-indigo-600 text-white':'bg-white border'}`}>Create Event</button>
+            <button onClick={() => setScreen('templates')} className={`px-3 py-1 rounded ${screen==='templates'? 'bg-indigo-600 text-white':'bg-white border'}`}>Templates</button>
+            <div className="ml-4 bg-white p-2 rounded shadow-sm text-sm">Signed in as <strong>you@college.edu</strong></div>
           </nav>
         </header>
 
-        {screen === "dashboard" && (
+        {screen === 'dashboard' && (
           <main>
             <section className="grid grid-cols-3 gap-4 mb-6">
               <div className="col-span-2 bg-white p-4 rounded shadow">
                 <div className="flex justify-between items-center mb-3">
                   <h2 className="font-semibold">Upcoming Events</h2>
-                  <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search events..." className="border rounded px-2 py-1 text-sm" />
+                  <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search events..." className="border rounded px-2 py-1 text-sm" />
                 </div>
                 <div className="divide-y">
-                  {events.filter((ev) => ev.title.toLowerCase().includes(query.toLowerCase())).map((ev) => (
+                  {events.filter(ev => ev.title.toLowerCase().includes(query.toLowerCase())).map(ev => (
                     <div key={ev.id} className="py-3 flex items-center justify-between">
                       <div>
                         <div className="font-medium">{ev.title}</div>
-                        <div className="text-xs text-gray-500">
-                          {ev.date} • {ev.venue} • {ev.volunteers.length} volunteers • {ev.hours}h • {ev.approvalStatus}
-                        </div>
+                        <div className="text-xs text-gray-500">{ev.date} • {ev.venue} • {ev.volunteers.length} volunteers • {ev.hours}h • {ev.approvalStatus}</div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => openEvent(ev.id)} className="px-3 py-1 bg-indigo-600 text-white rounded text-sm">
-                          Open
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedEventId(ev.id);
-                            setScreen("quick-view");
-                          }}
-                          className="px-3 py-1 border rounded text-sm"
-                        >
-                          Quick View
-                        </button>
+                        <button onClick={() => openEvent(ev.id)} className="px-3 py-1 bg-indigo-600 text-white rounded text-sm">Open</button>
+                        <button onClick={() => { setSelectedEventId(ev.id); setScreen('quick-view'); }} className="px-3 py-1 border rounded text-sm">Quick View</button>
                       </div>
                     </div>
                   ))}
@@ -181,15 +191,9 @@ export default function App() {
               <div className="bg-white p-4 rounded shadow">
                 <h3 className="font-semibold mb-2">Quick Actions</h3>
                 <div className="flex flex-col gap-2">
-                  <button onClick={() => setScreen("create")} className="w-full py-2 bg-green-500 text-white rounded">
-                    Create new event
-                  </button>
-                  <button onClick={() => setScreen("templates")} className="w-full py-2 border rounded">
-                    Use template
-                  </button>
-                  <button onClick={() => alert("Exported volunteers CSV (mock)")} className="w-full py-2 border rounded">
-                    Export volunteers
-                  </button>
+                  <button onClick={() => setScreen('create')} className="w-full py-2 bg-green-500 text-white rounded">Create new event</button>
+                  <button onClick={() => setScreen('templates')} className="w-full py-2 border rounded">Use template</button>
+                  <button onClick={() => alert('Exported volunteers CSV (mock)')} className="w-full py-2 border rounded">Export volunteers</button>
                 </div>
 
                 <div className="mt-4">
@@ -200,28 +204,21 @@ export default function App() {
 
                 <div className="mt-4">
                   <h4 className="text-sm font-medium">Pending approvals</h4>
-                  {pendingApprovals.length === 0 ? (
-                    <div className="text-xs text-gray-500">No pending approvals</div>
-                  ) : (
+                  {pendingApprovals.length === 0 ? <div className="text-xs text-gray-500">No pending approvals</div> : (
                     <ul className="text-sm mt-2">
-                      {pendingApprovals.map((pa) => (
+                      {pendingApprovals.map(pa=> (
                         <li key={pa.id} className="flex items-center justify-between py-1">
-                          <div>
-                            {pa.title} • {pa.date}
-                          </div>
+                          <div>{pa.title} • {pa.date}</div>
                           <div className="flex gap-1">
-                            <button onClick={() => approveEvent(pa.id)} className="px-2 py-1 bg-green-500 text-white rounded text-xs">
-                              Approve
-                            </button>
-                            <button onClick={() => rejectEvent(pa.id)} className="px-2 py-1 border rounded text-xs">
-                              Reject
-                            </button>
+                            <button onClick={()=> approveEvent(pa.id)} className="px-2 py-1 bg-green-500 text-white rounded text-xs">Approve</button>
+                            <button onClick={()=> rejectEvent(pa.id)} className="px-2 py-1 border rounded text-xs">Reject</button>
                           </div>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
+
               </div>
             </section>
 
@@ -234,9 +231,7 @@ export default function App() {
                   <li>— Drive (Checkpoints, Vehicles)</li>
                 </ul>
                 <div className="mt-3">
-                  <button onClick={() => setScreen("templates")} className="px-3 py-1 border rounded">
-                    Browse templates
-                  </button>
+                  <button onClick={() => setScreen('templates')} className="px-3 py-1 border rounded">Browse templates</button>
                 </div>
               </div>
 
@@ -251,62 +246,35 @@ export default function App() {
           </main>
         )}
 
-        {screen === "create" && (
+        {screen === 'create' && (
           <div className="bg-white p-6 rounded shadow">
             <h2 className="font-semibold mb-4">Create Event</h2>
-            <CreateEventForm onCreate={createEvent} onCancel={() => setScreen("dashboard")} />
+            <CreateEventForm onCreate={createEvent} onCancel={()=>setScreen('dashboard')} />
             <div className="mt-4 text-sm text-gray-600">Note: Events created are sent for approval. Use "Raise for approval" after filling details.</div>
           </div>
         )}
 
-        {screen === "templates" && (
+        {screen === 'templates' && (
           <div className="bg-white p-6 rounded shadow">
             <h2 className="font-semibold mb-4">Event Templates</h2>
             <div className="grid grid-cols-3 gap-4">
-              <TemplateCard
-                title="Stall Event"
-                summary="Setup, Food, Clean"
-                onUse={() => {
-                  setScreen("create");
-                  setTimeout(() => alert("Template loaded into Create form (mock)"), 200);
-                }}
-              />
-              <TemplateCard
-                title="Seminar"
-                summary="Host, Tech, Logistics"
-                onUse={() => {
-                  setScreen("create");
-                  setTimeout(() => alert("Template loaded into Create form (mock)"), 200);
-                }}
-              />
-              <TemplateCard
-                title="Drive"
-                summary="Checkpoints, Vehicles"
-                onUse={() => {
-                  setScreen("create");
-                  setTimeout(() => alert("Template loaded into Create form (mock)"), 200);
-                }}
-              />
+              <TemplateCard title="Stall Event" summary="Setup, Food, Clean" onUse={() => { setScreen('create'); setTimeout(()=> alert('Template loaded into Create form (mock)'),200); }} />
+              <TemplateCard title="Seminar" summary="Host, Tech, Logistics" onUse={() => { setScreen('create'); setTimeout(()=> alert('Template loaded into Create form (mock)'),200); }} />
+              <TemplateCard title="Drive" summary="Checkpoints, Vehicles" onUse={() => { setScreen('create'); setTimeout(()=> alert('Template loaded into Create form (mock)'),200); }} />
             </div>
           </div>
         )}
 
-        {screen === "quick-view" && selectedEvent && (
+        {screen === 'quick-view' && selectedEvent && (
           <div className="bg-white p-6 rounded shadow">
             <div className="flex justify-between items-start">
               <div>
                 <h2 className="font-semibold text-xl">{selectedEvent.title}</h2>
-                <div className="text-sm text-gray-500">
-                  {selectedEvent.date} • {selectedEvent.venue}
-                </div>
+                <div className="text-sm text-gray-500">{selectedEvent.date} • {selectedEvent.venue}</div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setScreen("event")} className="px-3 py-1 bg-indigo-600 text-white rounded">
-                  Open full
-                </button>
-                <button onClick={() => alert("Shared event link (mock)")} className="px-3 py-1 border rounded">
-                  Share
-                </button>
+                <button onClick={()=> setScreen('event')} className="px-3 py-1 bg-indigo-600 text-white rounded">Open full</button>
+                <button onClick={()=> alert('Shared event link (mock)')} className="px-3 py-1 border rounded">Share</button>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-4">
@@ -314,18 +282,14 @@ export default function App() {
                 <h4 className="font-medium">Volunteers</h4>
                 <div className="mt-2 divide-y">
                   {selectedEvent.volunteers.length === 0 && <div className="text-sm text-gray-500 py-2">No volunteers yet</div>}
-                  {selectedEvent.volunteers.map((v) => (
+                  {selectedEvent.volunteers.map(v => (
                     <div key={v.id} className="py-2 flex items-center justify-between">
                       <div>
                         <div className="font-medium">{v.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {v.role} • {v.status}
-                        </div>
+                        <div className="text-xs text-gray-500">{v.role} • {v.status}</div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => toggleCheckIn(v.id)} className="px-2 py-1 border rounded text-sm">
-                          {v.status === "checked-in" ? "Undo" : "Check-in"}
-                        </button>
+                        <button onClick={()=> toggleCheckIn(v.id)} className="px-2 py-1 border rounded text-sm">{v.status === 'checked-in' ? 'Undo' : 'Check-in'}</button>
                       </div>
                     </div>
                   ))}
@@ -337,52 +301,24 @@ export default function App() {
                 <div className="text-sm text-gray-600">Checked-in: {checkedIn}</div>
                 <div className="text-sm text-gray-600">Hours: {selectedEvent.hours}</div>
                 <div className="mt-3">
-                  <button onClick={() => setScreen("event")} className="px-3 py-1 bg-indigo-600 text-white rounded">
-                    Manage
-                  </button>
+                  <button onClick={()=> setScreen('event')} className="px-3 py-1 bg-indigo-600 text-white rounded">Manage</button>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {screen === "event" && selectedEvent && (
+        {screen === 'event' && selectedEvent && (
           <div className="bg-white p-6 rounded shadow">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-2xl font-semibold">{selectedEvent.title}</h2>
-                <div className="text-sm text-gray-500">
-                  {selectedEvent.date} • {selectedEvent.venue}
-                </div>
+                <div className="text-sm text-gray-500">{selectedEvent.date} • {selectedEvent.venue}</div>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    raiseApproval(selectedEvent.id);
-                    alert("Raised for approval (mock)");
-                  }}
-                  className="px-3 py-1 bg-yellow-500 text-white rounded"
-                >
-                  Raise for approval
-                </button>
-                <button
-                  onClick={() => {
-                    if (selectedEvent.approvalStatus === "approved") alert("Event already approved");
-                    else approveEvent(selectedEvent.id);
-                  }}
-                  className="px-3 py-1 bg-green-500 text-white rounded"
-                >
-                  Approve (mock)
-                </button>
-                <button
-                  onClick={() => {
-                    navigator.clipboard?.writeText("https://campus.example/event/" + selectedEvent.id);
-                    alert("Link copied (mock)");
-                  }}
-                  className="px-3 py-1 border rounded"
-                >
-                  Copy link
-                </button>
+                <button onClick={()=> { raiseApproval(selectedEvent.id); alert('Raised for approval (mock)'); }} className="px-3 py-1 bg-yellow-500 text-white rounded">Raise for approval</button>
+                <button onClick={()=> { if(selectedEvent.approvalStatus==='approved') alert('Event already approved'); else approveEvent(selectedEvent.id); }} className="px-3 py-1 bg-green-500 text-white rounded">Approve (mock)</button>
+                <button onClick={()=> { navigator.clipboard?.writeText('https://campus.example/event/'+selectedEvent.id); alert('Link copied (mock)'); }} className="px-3 py-1 border rounded">Copy link</button>
               </div>
             </div>
 
@@ -390,9 +326,10 @@ export default function App() {
               <div className="col-span-2">
                 <h4 className="font-medium">Live View</h4>
                 <div className="mt-3 bg-gray-100 rounded p-3 h-64 relative">
-                  {selectedEvent.volunteers.map((v) => (
+                  {/* Simple mock map: volunteers are dots placed by x,y */}
+                  {selectedEvent.volunteers.map(v => (
                     <div key={v.id} className="absolute text-xs" style={{ left: `${v.location?.x || 10}%`, top: `${v.location?.y || 10}%` }}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow ${v.status === "checked-in" ? "bg-green-400 text-white" : "bg-indigo-200 text-indigo-800"}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow ${v.status==='checked-in' ? 'bg-green-400 text-white' : 'bg-indigo-200 text-indigo-800'}`}>
                         {v.name[0]}
                       </div>
                       <div className="text-xs mt-1 bg-white px-1 rounded shadow-sm">{v.name}</div>
@@ -404,59 +341,40 @@ export default function App() {
                   <h5 className="font-medium">Tasks</h5>
                   <div className="mt-2 divide-y">
                     {selectedEvent.tasks.length === 0 && <div className="text-sm text-gray-500 py-2">No tasks yet</div>}
-                    {selectedEvent.tasks.map((t) => (
+                    {selectedEvent.tasks.map(t => (
                       <div key={t.id} className="py-2 flex items-center justify-between">
                         <div>
                           <div className="font-medium">{t.title}</div>
-                          <div className="text-xs text-gray-500">Assigned to: {t.assignedTo || "—"}</div>
+                          <div className="text-xs text-gray-500">Assigned to: {t.assignedTo || '—'}</div>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => alert("Reassign (mock)")} className="px-2 py-1 border rounded text-sm">
-                            Reassign
-                          </button>
+                          <button onClick={()=> alert('Reassign (mock)')} className="px-2 py-1 border rounded text-sm">Reassign</button>
                         </div>
                       </div>
                     ))}
                   </div>
 
                   <div className="mt-3 flex gap-2">
-                    <button
-                      onClick={() => {
-                        const id = `v-${Date.now()}`;
-                        addVolunteer({ id, name: "New Volunteer", role: "Helper", location: { x: 20 + Math.random() * 60, y: 20 + Math.random() * 60 }, status: "signed-up" });
-                      }}
-                      className="px-3 py-1 bg-indigo-600 text-white rounded"
-                    >
-                      Add Volunteer
-                    </button>
-                    <button
-                      onClick={() => {
-                        const id = `t-${Date.now()}`;
-                        assignTask({ id, title: "Clean up 11:00", assignedTo: null, status: "todo" });
-                      }}
-                      className="px-3 py-1 border rounded"
-                    >
-                      Add Task
-                    </button>
+                    <button onClick={()=> { const id = `v-${Date.now()}`; addVolunteer({ id, name: 'New Volunteer', role: 'Helper', location: { x: 20+Math.random()*60, y: 20+Math.random()*60 }, status: 'signed-up' }); }} className="px-3 py-1 bg-indigo-600 text-white rounded">Add Volunteer</button>
+                    <button onClick={()=> { const id = `t-${Date.now()}`; assignTask({ id, title: 'Clean up 11:00', assignedTo: null, status: 'todo' }); }} className="px-3 py-1 border rounded">Add Task</button>
                   </div>
                 </div>
+
               </div>
 
               <aside className="col-span-1">
                 <div className="bg-white p-3 rounded shadow-sm">
                   <h5 className="font-medium">Volunteer List</h5>
                   <div className="mt-2 divide-y">
-                    {selectedEvent.volunteers.length === 0 && <div className="text-sm text-gray-500 py-2">No volunteers yet</div>}
-                    {selectedEvent.volunteers.map((v) => (
+                    {selectedEvent.volunteers.length===0 && <div className="text-sm text-gray-500 py-2">No volunteers yet</div>}
+                    {selectedEvent.volunteers.map(v => (
                       <div key={v.id} className="py-2 flex items-center justify-between">
                         <div>
                           <div className="font-medium">{v.name}</div>
                           <div className="text-xs text-gray-500">{v.role}</div>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => toggleCheckIn(v.id)} className="px-2 py-1 border rounded text-sm">
-                            {v.status === "checked-in" ? "Undo" : "Check-in"}
-                          </button>
+                          <button onClick={()=> toggleCheckIn(v.id)} className="px-2 py-1 border rounded text-sm">{v.status==='checked-in'?'Undo':'Check-in'}</button>
                         </div>
                       </div>
                     ))}
@@ -470,23 +388,20 @@ export default function App() {
                   <div className="text-sm text-gray-600">Hours: {selectedEvent.hours}</div>
 
                   <div className="mt-3">
-                    <button onClick={() => setScreen("analytics")} className="w-full px-3 py-2 bg-indigo-600 text-white rounded">
-                      View analytics
-                    </button>
+                    <button onClick={()=> setScreen('analytics')} className="w-full px-3 py-2 bg-indigo-600 text-white rounded">View analytics</button>
                   </div>
                 </div>
+
               </aside>
             </div>
           </div>
         )}
 
-        {screen === "analytics" && selectedEvent && (
+        {screen === 'analytics' && selectedEvent && (
           <div className="bg-white p-6 rounded shadow">
             <div className="flex justify-between items-center">
               <h2 className="font-semibold">Post-event Analytics: {selectedEvent.title}</h2>
-              <div className="text-sm text-gray-500">
-                Export: <button onClick={() => alert("CSV export (mock)")} className="underline">Volunteers</button>
-              </div>
+              <div className="text-sm text-gray-500">Export: <button onClick={()=> alert('CSV export (mock)')} className="underline">Volunteers</button></div>
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-4">
@@ -496,14 +411,15 @@ export default function App() {
 
                 <div className="mt-4">
                   <h5 className="text-sm font-medium">Contribution</h5>
+                  {/* mock bar chart */}
                   <div className="mt-2 space-y-2">
-                    {selectedEvent.volunteers.map((v) => (
+                    {selectedEvent.volunteers.map(v => (
                       <div key={v.id} className="flex items-center gap-3">
                         <div className="w-20 text-xs">{v.name}</div>
                         <div className="flex-1 bg-white h-4 rounded shadow-sm">
                           <div style={{ width: `${20 + (v.score || 0) * 20}%` }} className="h-4 rounded bg-indigo-400"></div>
                         </div>
-                        <div className="w-8 text-xs text-right">{20 + (v.score || 0) * 20}%</div>
+                        <div className="w-8 text-xs text-right">{20 + (v.score || 0)*20}%</div>
                       </div>
                     ))}
                   </div>
@@ -511,66 +427,124 @@ export default function App() {
 
                 <div className="mt-6">
                   <h5 className="text-sm font-medium">Participant feedback</h5>
-                  <div className="mt-2 text-sm text-gray-600">Avg rating: {selectedEvent.feedback.length ? (selectedEvent.feedback.reduce((s, f) => s + f.rating, 0) / selectedEvent.feedback.length).toFixed(1) : "—"}</div>
+                  <div className="mt-2 text-sm text-gray-600">Avg rating: {selectedEvent.feedback.length ? (selectedEvent.feedback.reduce((s,f)=> s+f.rating,0)/selectedEvent.feedback.length).toFixed(1) : '—'}</div>
                   <div className="mt-3">
-                    <button onClick={() => setScreen("collect-feedback")} className="px-3 py-1 border rounded">
-                      Collect feedback
-                    </button>
+                    <button onClick={()=> setScreen('collect-feedback')} className="px-3 py-1 border rounded">Collect feedback</button>
                   </div>
 
                   <div className="mt-4">
                     <h6 className="text-xs font-medium">Recent comments</h6>
                     <div className="mt-2 text-sm text-gray-600">
                       {selectedEvent.feedback.length === 0 && <div className="text-xs text-gray-500">No feedback yet</div>}
-                      {selectedEvent.feedback.map((f) => (
-                        <div key={f.id} className="py-1">
-                          "{f.comment}" — <strong>{f.name}</strong> ({f.rating}/5)
-                        </div>
+                      {selectedEvent.feedback.map(f => (
+                        <div key={f.id} className="py-1">"{f.comment}" — <strong>{f.name}</strong> ({f.rating}/5)</div>
                       ))}
                     </div>
                   </div>
                 </div>
-              </div>
 
+              </div>
               <div className="col-span-1 bg-white p-4 rounded">
                 <h4 className="font-medium">Post actions</h4>
                 <div className="mt-3 text-sm text-gray-600">Send thank-you emails, assign badges, publish a summary to club page.</div>
                 <div className="mt-3">
-                  <button onClick={() => alert("Sent thank yous (mock)")} className="w-full py-2 bg-green-500 text-white rounded">
-                    Send thank-you
-                  </button>
-                  <button onClick={() => alert("Badges assigned (mock)")} className="w-full mt-2 py-2 border rounded">
-                    Assign badges
-                  </button>
+                  <button onClick={()=> alert('Sent thank yous (mock)')} className="w-full py-2 bg-green-500 text-white rounded">Send thank-you</button>
+                  <button onClick={()=> alert('Badges assigned (mock)')} className="w-full mt-2 py-2 border rounded">Assign badges</button>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {screen === "collect-feedback" && selectedEvent && (
+        {screen === 'collect-feedback' && selectedEvent && (
           <div className="bg-white p-6 rounded shadow">
             <h2 className="font-semibold">Collect Feedback: {selectedEvent.title}</h2>
-            <FeedbackForm
-              onSubmit={(fb) => {
-                submitFeedback(selectedEvent.id, { id: `f-${Date.now()}`, ...fb });
-                alert("Feedback submitted (mock)");
-                setScreen("analytics");
-              }}
-              onCancel={() => setScreen("analytics")}
-            />
+            <FeedbackForm onSubmit={(fb)=>{ submitFeedback(selectedEvent.id, { id: `f-${Date.now()}`, ...fb }); alert('Feedback submitted (mock)'); setScreen('analytics'); }} onCancel={()=> setScreen('analytics')} />
             <div className="mt-3 text-sm text-gray-500">Tip: Share the feedback link with volunteers and participants after the event to improve Avg rating.</div>
           </div>
         )}
+
       </div>
     </div>
   );
 }
 
-function CreateEventForm({ onCreate, onCancel }) {
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [venue, setVenue] = useState("");
+function CreateEventForm({ onCreate, onCancel }){
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState('');
+  const [venue, setVenue] = useState('');
   const [hours, setHours] = useState(2);
 
+  return (
+    <form onSubmit={(e)=>{ e.preventDefault(); onCreate({ title, date, venue, hours: Number(hours) }); }} className="space-y-3">
+      <div>
+        <label className="text-sm font-medium">Event title</label>
+        <input required value={title} onChange={(e)=>setTitle(e.target.value)} className="w-full border rounded px-2 py-1 mt-1" />
+      </div>
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <label className="text-sm font-medium">Date</label>
+          <input required value={date} onChange={(e)=>setDate(e.target.value)} type="date" className="w-full border rounded px-2 py-1 mt-1" />
+        </div>
+        <div className="flex-1">
+          <label className="text-sm font-medium">Venue</label>
+          <input required value={venue} onChange={(e)=>setVenue(e.target.value)} className="w-full border rounded px-2 py-1 mt-1" />
+        </div>
+      </div>
 
+      <div>
+        <label className="text-sm font-medium">Estimated event duration (hours)</label>
+        <input required type="number" min="1" max="24" value={hours} onChange={(e)=>setHours(e.target.value)} className="w-32 border rounded px-2 py-1 mt-1" />
+      </div>
+
+      <div className="flex gap-2">
+        <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">Create event</button>
+        <button onClick={(e)=>{ e.preventDefault(); onCancel(); }} className="px-4 py-2 border rounded">Cancel</button>
+      </div>
+    </form>
+  );
+}
+
+function FeedbackForm({ onSubmit, onCancel }){
+  const [name, setName] = useState('');
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  return (
+    <form onSubmit={(e)=>{ e.preventDefault(); onSubmit({ name, rating: Number(rating), comment }); }} className="space-y-3">
+      <div>
+        <label className="text-sm font-medium">Your name</label>
+        <input value={name} onChange={(e)=>setName(e.target.value)} className="w-full border rounded px-2 py-1 mt-1" />
+      </div>
+      <div>
+        <label className="text-sm font-medium">Rating (1-5)</label>
+        <select value={rating} onChange={(e)=>setRating(e.target.value)} className="w-32 border rounded px-2 py-1 mt-1">
+          <option>5</option>
+          <option>4</option>
+          <option>3</option>
+          <option>2</option>
+          <option>1</option>
+        </select>
+      </div>
+      <div>
+        <label className="text-sm font-medium">Comment</label>
+        <textarea value={comment} onChange={(e)=>setComment(e.target.value)} className="w-full border rounded px-2 py-1 mt-1" />
+      </div>
+      <div className="flex gap-2">
+        <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">Submit feedback</button>
+        <button onClick={(e)=>{ e.preventDefault(); onCancel(); }} className="px-4 py-2 border rounded">Cancel</button>
+      </div>
+    </form>
+  );
+}
+
+function TemplateCard({ title, summary, onUse }){
+  return (
+    <div className="p-4 bg-white rounded shadow-sm">
+      <div className="font-medium">{title}</div>
+      <div className="text-sm text-gray-500">{summary}</div>
+      <div className="mt-3">
+        <button onClick={onUse} className="px-3 py-1 border rounded">Use template</button>
+      </div>
+    </div>
+  );
+}
